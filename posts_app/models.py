@@ -32,6 +32,7 @@ class Profile(models.Model):
 
 # Miejsce połowu
 class FishingSpot(models.Model):
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=100)
     location = models.CharField(max_length=200)
     description = models.TextField()
@@ -82,7 +83,7 @@ class Post(models.Model):
 
 # Połów
 class Catch(models.Model):
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     species = models.ForeignKey(FishSpecies, on_delete=models.CASCADE, null=False)
     fishing_method = models.CharField(max_length=30, choices=FISHING_METHOD, null=False, default='')
     spot = models.ForeignKey(FishingSpot, on_delete=models.SET_NULL, null=True)
@@ -102,7 +103,7 @@ class Catch(models.Model):
 # Komentarz
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=False)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
