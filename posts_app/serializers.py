@@ -24,13 +24,22 @@ class FishingSpotSerializer(serializers.ModelSerializer):
     class Meta:
         model = FishingSpot
         fields = '__all__'
-
 class CatchSerializer(serializers.ModelSerializer):
+    spotSerializer = FishingSpotSerializer(source='spot', read_only=True)
     class Meta:
         model = Catch
         fields = '__all__'
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+        read_only_fields = ['id']
+
+
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Profile
         fields = '__all__'
@@ -40,9 +49,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'password2']
+        fields = ['id','username', 'email', 'password', 'password2']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'id': {'read_only': True}
         }
 
     def validate(self, data):
@@ -56,4 +66,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
+        
+        Profile.objects.create(id=user.id, user=user)
         return user

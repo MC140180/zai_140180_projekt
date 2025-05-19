@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from .models import Post, Comment, FishSpecies, FishingSpot, Catch, Profile, User
-from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
+from .permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly, IsProfileAuthorOrReadOnly
 from .serializers import (
     PostSerializer, CommentSerializer, FishSpeciesSerializer,
     FishingSpotSerializer, CatchSerializer, ProfileSerializer, UserRegisterSerializer
@@ -78,7 +78,7 @@ class CatchViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticated, IsProfileAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
