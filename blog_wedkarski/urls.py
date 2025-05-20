@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
+from posts_app.schema import JWTMiddleware
+
 
 from graphene_django.views import GraphQLView
 
@@ -36,7 +38,7 @@ urlpatterns = [
     path('api/', include('posts_app.urls'), name='api'),
     path('api/token/', TokenObtainPairView.as_view(), name='token'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True,         middleware=[JWTMiddleware()]))),
 ]
 
 if settings.DEBUG:

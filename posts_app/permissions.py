@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsAuthorOrReadOnly(permissions.BasePermission):
     """
     Pozwala edytować tylko jeśli użytkownik jest autorem posta.
@@ -14,6 +15,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 
         # Zapis (PUT, PATCH, DELETE) tylko dla autora posta
         return obj.author == request.user
+
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     """

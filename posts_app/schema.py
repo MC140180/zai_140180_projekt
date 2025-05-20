@@ -1,5 +1,7 @@
 import graphene
 from graphene_django.types import DjangoObjectType
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import Post, Comment, Catch
 from django.contrib.auth import get_user_model
 import graphql_jwt
@@ -8,9 +10,19 @@ User = get_user_model()
 
 # === Typy ===
 
+class UserType(DjangoObjectType):
+    class Meta:
+        model = User
+        field = "username"
+
 class PostType(DjangoObjectType):
+    author = graphene.Field(UserType)
+
     class Meta:
         model = Post
+
+    def resolve_author(self, info):
+        return self.author
 
 class CommentType(DjangoObjectType):
     class Meta:
@@ -25,6 +37,7 @@ class CatchType(DjangoObjectType):
 class Query(graphene.ObjectType):
     all_posts = graphene.List(PostType)
     post = graphene.Field(PostType, id=graphene.Int())
+    posts_by_user = graphene.List(PostType, username=graphene.String())
 
     def resolve_all_posts(root, info):
         return Post.objects.all()
@@ -35,22 +48,24 @@ class Query(graphene.ObjectType):
         except Post.DoesNotExist:
             return None
 
+    def resolve_posts_by_user(root, info, username):
+        return Post.objects.filter(author__username=username)
+
 # === Mutacje (CREATE, UPDATE, DELETE) ===
 
 class CreatePost(graphene.Mutation):
     class Arguments:
         title = graphene.String()
         content = graphene.String()
-        category = graphene.String()
         author_id = graphene.Int()
 
     post = graphene.Field(PostType)
 
-    def mutate(self, info, title, content, category, author_id):
-        if info.context.user.is_anonymous:
+    def mutate(self, info, title, content):
+        if not info.context.user.is_authenticated:
             raise Exception("Nie jesteś zalogowany.")
-        user = User.objects.get(id=author_id)
-        post = Post(title=title, content=content, category=category, author=user)
+        user = User.objects.get(id=info.context.user.id)
+        post = Post(title=title, content=content, author=user)
         post.save()
         return CreatePost(post=post)
 
@@ -65,7 +80,7 @@ class UpdatePost(graphene.Mutation):
 
     def mutate(self, info, id, title=None, content=None, category=None):
         post = Post.objects.get(pk=id)
-        if info.context.user.is_anonymous:
+        if not info.context.user.is_authenticated:
             raise Exception("Nie jesteś zalogowany.")
         if post.author != info.context.user:
             raise Exception("Nie masz uprawnień do edytowania tego posta.")
@@ -99,6 +114,21 @@ class DeletePost(graphene.Mutation):
 
 # === Rejestracja mutacji ===
 
+class JWTMiddleware:
+    def resolve(self, next, root, info, **args):
+        request = info.context
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if auth_header and len(auth_header) == 2 and auth_header[0].lower() == 'bearer':
+            jwt_token = auth_header[1]
+            try:
+                # Wykonaj walidację tokenu
+                validated_token = JWTAuthentication().get_validated_token(jwt_token)
+                user = JWTAuthentication().get_user(validated_token)
+                info.context.user = user
+            except:
+                info.context.user = None
+        return next(root, info, **args)
+
 class Mutation(graphene.ObjectType):
     create_post = CreatePost.Field()
     update_post = UpdatePost.Field()
@@ -106,3 +136,5 @@ class Mutation(graphene.ObjectType):
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
+
+

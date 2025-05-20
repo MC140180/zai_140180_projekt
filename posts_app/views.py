@@ -45,7 +45,7 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -60,7 +60,7 @@ class FishSpeciesViewSet(viewsets.ModelViewSet):
 class FishingSpotViewSet(viewsets.ModelViewSet):
     queryset = FishingSpot.objects.all()
     serializer_class = FishingSpotSerializer
-    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -69,7 +69,7 @@ class FishingSpotViewSet(viewsets.ModelViewSet):
 class CatchViewSet(viewsets.ModelViewSet):
     queryset = Catch.objects.all()
     serializer_class = CatchSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -78,7 +78,7 @@ class CatchViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated, IsProfileAuthorOrReadOnly]
+    permission_classes = [IsProfileAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

@@ -49,7 +49,6 @@ class FishingSpot(models.Model):
 class FishSpecies(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
-    season = models.CharField(max_length=100)
 
     class Meta:
         verbose_name = 'Gatunek Ryby'
@@ -60,7 +59,7 @@ class FishSpecies(models.Model):
 
 # Post na blogu
 class Post(models.Model):
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='posts_app')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name='posts_app')
     title = models.CharField(max_length=200)
     content = models.TextField()
     image = models.ImageField(upload_to='posts_app/', blank=True)
